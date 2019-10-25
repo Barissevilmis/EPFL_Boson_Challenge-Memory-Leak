@@ -25,8 +25,9 @@ def InitWeights(feat):
     return init_w
 
 '''HYPER PARAMETERS'''
+'''THESE PARAMETERS ARE CHOSEN ACCORDING TO TUNING AND TESTING'''
 def HyperParameters():
-    max_iter = 800
+    max_iter = 500
     epochs = 5
     gamma = 1e-2
     lambda_ = 1e-1
@@ -503,8 +504,8 @@ def compute_reg_log_gradient(y, tx, w, lambda_):
 ############################# MODELS #####################################
 ##########################################################################
 
+'''BATCH GRADIENT DESCENT'''
 def least_squares_GD(y, tx, initial_w, max_iters, gamma, cat_):
-    '''BATCH GRADIENT DESCENT'''
     w = initial_w
     for n_iter in range(max_iters):
         loss = compute_loss(y, tx, w, "MSE")
@@ -515,6 +516,82 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma, cat_):
 
     return (w, loss)
 
+'''STOCHASTIC GRADIENT DESCENT'''
+def least_squares_SGD(y, tx, initial_w, max_iters, gamma, cat_):
+    w = initial_w 
+    for n_iter in range(max_iters):
+        for minibatch_y, minibatch_tx in batch_iter(y, tx, 1):
+            loss = compute_loss(minibatch_y, minibatch_tx, w, "MSE")
+            grad = compute_gradient(minibatch_y, minibatch_tx, w)
+            w = w - gamma * grad
+            if (n_iter % 100) == 0:
+                print("Stochastic Gradient Descent({bi}/{ti})for Category-{pi}: loss={l}".format(bi=n_iter, ti=max_iters - 1,pi = cat_, l=loss))
+                
+    return (w, loss)
+
+'''COMPUTE W_STAR: WEIGHT FOR NORMAL EQUATIONS BY LINEAR EQUATION SOLVER'''
+def least_squares(y, tx):
+    w_star = np.linalg.solve(tx.T@tx, tx.T@y)
+    loss = compute_ls_loss(y, tx, w_star)
+    return (w_star,loss)
+
+'''RIDGE REGRESSION WITH LAMBDA PARAMETER AS REGULARIZATION PARAMETER'''
+def ridge_regression(y, tx, lambda_):
+    N = y.shape[0]
+    a = tx.shape[0]
+    m = (tx.T@tx)+(lambda_/(2*N))*np.identity(tx.shape[1])
+    i = np.eye(m.shape[0],m.shape[0])
+    w_ridge = np.linalg.lstsq(m,i)[0]@tx.T@y
+    loss = compute_rdg_loss(y, tx, w_ridge, lambda_)
+    return (w_ridge, loss)
+
+'''LOGISTIC REGRESSION WITH BATCH GRADIENT DESCENT OR STOCHASTIC GRADIENT DESCENT'''
+def logistic_regression(y, tx, initial_w, max_iters, gamma, cat_, mod = 1):
+    if mod == 1:
+        '''FOR GRADIENT DESCENT'''
+        w = initial_w
+        for n_iter in range(max_iters):
+            loss = compute_log_loss(y, tx, w)
+            grad = compute_log_gradient(y, tx, w)
+            w = w - (gamma * grad)
+            if (n_iter % 100) == 0:
+                print("Logistic Regression Gradient Descent({bi}/{ti}) for Category-{pi}: loss={l}".format(bi=n_iter, ti=max_iters - 1,pi = cat_, l=loss))
+
+        return (w, loss)
+    else:
+        '''FOR STOCHASTIC GRADIENT DESCENT'''
+        w = initial_w 
+        for n_iter in range(max_iters):
+            for minibatch_y, minibatch_tx in batch_iter(y, tx, 1):
+                loss = compute_log_loss(minibatch_y, minibatch_tx, w)
+                grad = compute_log_gradient(minibatch_y, minibatch_tx, w)
+                w = w - gamma * grad
+                print("Logistic Regression Stochastic Gradient Descent({bi}/{ti}) for Category-{pi}: loss={l}".format(bi=n_iter, ti=max_iters - 1,pi = cat_, l=loss))
+        return (w, loss)
+
+'''REGULARIZED LOGISTIC REGRESSION WITH BATCH GRADIENT DESCENT OR STOCHASTIC GRADIENT DESCENT'''
+def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, cat_, mod = 1):
+    if mod == 1:
+        '''FOR GRADIENT DESCENT'''
+        w = initial_w
+        for n_iter in range(max_iters):
+            loss = compute_reg_log_loss(y, tx, w, lambda_)
+            grad = compute_reg_log_gradient(y, tx, w, lambda_)
+            w = w - (gamma * grad)
+            if (n_iter % 100) == 0:
+                print("Logistic Regression Gradient Descent({bi}/{ti})for Category-{pi}: loss={l}".format(bi=n_iter, ti=max_iters - 1,pi = cat_, l=loss))
+
+        return (w, loss)
+    else:
+        '''FOR STOCHASTIC GRADIENT DESCENT'''
+        w = initial_w 
+        for n_iter in range(max_iters):
+            for minibatch_y, minibatch_tx in batch_iter(y, tx, 1):
+                loss = compute_reg_log_loss(minibatch_y, minibatch_tx, w, lambda_)
+                grad = compute__reg_log_gradient(minibatch_y, minibatch_tx, w, lambda_)
+                w = w - gamma * grad
+                print("Logistic Regression Stochastic Gradient Descent({bi}/{ti})for Category-{pi}: loss={l}".format(bi=n_iter, ti=max_iters - 1,pi = cat_, l=loss))
+        return (w, loss)
 ############################# MODELS #####################################
 ##########################################################################
 

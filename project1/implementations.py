@@ -596,4 +596,51 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, cat_, m
 ##########################################################################
 
 
+########################### RUN MODELS ###################################
+##########################################################################
+
+'''PREDICTIONS FOR MODELS WITHOUT CROSS VALIDATION'''
+def Main(y_cat, tX_cat, y_val_cat, tX_val_cat):
+    init_w_gd = np.array((InitWeights(tX_cat[0].shape[1]),InitWeights(tX_cat[1].shape[1]),InitWeights(tX_cat[2].shape[1])))
+    gd_tr_pred = np.copy((y_val_cat))
+    w_gd = np.copy((init_w_gd))
+    max_iters, epochs, gamma, lambda_,decay,k_fold = HyperParameters()
+    cat_lst = [0, 1, 2]
+    
+    for epoch_ in range(epochs):
+        
+        for cat_ in cat_lst:   
+            (w_gd[cat_],loss1) = least_squares_GD(y_cat[cat_], tX_cat[cat_],w_gd[cat_], max_iters, gamma, cat_)
+        
+        gamma = GammaScheduler(gamma, decay, epoch_)
+        
+    '''PREDICTIONS'''
+    for cat_ in cat_lst:
+        gd_tr_pred[cat_] = predict_labels(w_gd[cat_], tX_val_cat[cat_])
+        print(gd_tr_pred[cat_])
+            
+    acc = WeightedAverage(gd_tr_pred, y_val_cat)
+    print("Accuracy of Model:", acc)
+    return w_gd
+
+
+'''CROSS VALIDATION WEIGHT'''
+'''WEIGHTS ARE TAKEN AS MEAN OF VARIOUS MEANS BY TRAINING ON DIFFERENT TRAIN-VALID PARTITIONS'''
+'''ACCURACY INCREASE IS NOT THE PURPOSE BUT WEIGHT AND ACCURACY VALIDATION ARE FIXED'''
+def CV_Main(y_cat, tX_cat):
+    cat_lst = [0, 1, 2]
+    max_iters, epochs, gamma, lambda_, decay, k_fold = HyperParameters()
+    w_res = np.array((InitWeights(tX_cat[0].shape[1]),InitWeights(tX_cat[1].shape[1]),InitWeights(tX_cat[2].shape[1])))
+    cv_tr_pred = [[] for i in range(len(cat_lst))]
+    for cat_ in cat_lst:
+        w_final, avg_acc = CrossValidation(y_cat[cat_], tX_cat[cat_], k_fold, cat_, lambda_)
+        w_res[cat_] = w_final
+        print("Final weight vector shape: ",w_final.shape)
+    return w_res
+
+
+########################### RUN MODELS ###################################
+##########################################################################
+
+
 
