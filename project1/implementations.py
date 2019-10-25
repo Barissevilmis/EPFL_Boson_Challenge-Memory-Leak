@@ -1,5 +1,5 @@
-'''''''''''''''''''''''''DATA ENGINEERING'''''''''''''''''''''''''''''''''
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+######################## DATA ENGINEERING ################################
+##########################################################################
 
 %matplotlib inline
 import numpy as np
@@ -403,5 +403,120 @@ def BuildDataModel_Test(tX_old, ids):
     
     return tX_cat, id_cat, ind_cat
 
-'''''''''''''''''''''''''DATA ENGINEERING'''''''''''''''''''''''''''''''''
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+######################## DATA ENGINEERING ################################
+##########################################################################
+
+
+######################## COST && GRADIENT ################################
+##########################################################################
+
+'''MEAN SQUARED ERROR OR MEAN ABSOLUTE ERROR'''
+'''LOSS CALCULATION FOR BATCH GD OR STOCHASTIC GD'''
+def compute_loss(y, tx, w, typ):
+    '''typ = <LOSS_TYPE(WITH CAPITAL LETTERS)>'''
+    loss = 0
+    N = y.shape[0]
+    if typ == "MSE":
+        loss = (1/(2*N))*np.sum(np.square(y - (tx@w)))
+    elif typ == "MAE":
+        loss = (1/(2*N))*np.sum(np.abs(y - (tx@w)))
+    return loss
+
+'''GRADIENT CALCULATION FOR BATCH GD'''
+def compute_gradient(y, tx, w):
+    N = y.shape[0]
+    e = y - tx@w
+    grad = (-1/N) * (tx.T@e)
+    return grad
+
+'''GRADIENT CALCULATION FOR STOCHASTIC GD'''
+def compute_stoch_gradient(y, tx, w):
+    N = y.shape[0]
+    e = y - tx@w
+    grad = (-1/N)*(tx.T@e)
+    return grad
+
+'''LEAST SQUARES WITH NORMAL EQUATIONS LOSS COMPUTATION'''
+def compute_ls_loss(y, tx, w):
+    loss = 0
+    N = y.shape[0]
+    loss = (1/(2*N))*(tx.T@(y - tx@w))
+
+'''RIDGE REGRESSION(REGULARIZED LEAST SQUARES WITH NORMAL EQUATION) LOSS COMPUTATION'''    
+def compute_rdg_loss(y, tx, w, lambda_):
+    loss = 0
+    N = y.shape[0]
+    loss = (1/(2*N))*np.sum(np.square(y - (tx@w))) + (lambda_*np.sum(w.T@w))
+    return loss
+
+'''SIGMOID CALCULATION'''
+def sigmoid(tx, w):
+    z = 1 / (1 + np.exp(-1*(tx@w)))
+    return z
+
+'''LOGISTIC REGRESSION LOSS FUNCTION'''
+def compute_log_loss(y, tx, w):
+    loss = 0;
+    sigm = sigmoid(tx,w)
+    sigm2 = 1 - sigm
+    N = y.shape[0]
+    '''GIVEN THAT WE HAVE A VALUE THAT IS NEGATIVE OR REALLY SMALL(PYTHON CONVERTS IT TO ZERO DURING COMPUTATION)'''
+    '''CONVERT THEM TO 1e-50'''
+    sigm[sigm < 1e-50] = 1e-50
+    sigm2[sigm2 < 1e-50] = 1e-50
+    
+    loss = (-1/N)*np.sum(y.T@np.log(sigm) + ((1-y).T@np.log(sigm2)))
+    
+    return loss
+
+'''GRADIENT COMPUTATION FOR LOGISTIC REGRESSION'''
+def compute_log_gradient(y, tx, w):
+    N = y.shape[0]
+    z = sigmoid(tx,w)
+    grad = (1/N) * (tx.T@(z - y))
+    return grad
+
+'''LOGISTIC REGRESSION LOSS WITH REGULARIZATION'''
+def compute_reg_log_loss(y, tx, w, lambda_):
+    loss = 0;
+    sigm = sigmoid(tx,w)
+    sigm2 = 1 - sigm
+    N = y.shape[0]
+    '''GIVEN THAT WE HAVE A VALUE THAT IS NEGATIVE OR REALLY SMALL(PYTHON CONVERTS IT TO ZERO DURING COMPUTATION)'''
+    '''CONVERT THEM TO 1e-50'''
+    sigm[sigm < 1e-50] = 1e-50
+    sigm2[sigm2 < 1e-50] = 1e-50
+    loss = (-1/N)*(np.sum(y.T@np.log(sigm) + ((1-y).T@np.log(sigm2))) + ((lambda_/2)*np.sum(w.T@w)))
+    
+    return loss
+
+'''LOGISTIC REGRESSION GRADIENT COMPUTATION WITH REGULARIZATION'''
+def compute_reg_log_gradient(y, tx, w, lambda_):
+    N = y.shape[0]
+    z = sigmoid(tx,w)
+    grad = (1/N) * ((tx.T@(z - y)) + (lambda_*w))
+    return grad
+
+######################## COST && GRADIENT ################################
+##########################################################################
+
+############################# MODELS #####################################
+##########################################################################
+
+def least_squares_GD(y, tx, initial_w, max_iters, gamma, cat_):
+    '''BATCH GRADIENT DESCENT'''
+    w = initial_w
+    for n_iter in range(max_iters):
+        loss = compute_loss(y, tx, w, "MSE")
+        grad = compute_gradient(y, tx, w)
+        w = w - (gamma * grad)
+        if (n_iter % 100) == 0:
+            print("Gradient Descent({bi}/{ti})for Category-{pi}: loss={l}".format(bi=n_iter, ti=max_iters - 1,pi = cat_, l=loss))
+
+    return (w, loss)
+
+############################# MODELS #####################################
+##########################################################################
+
+
+
