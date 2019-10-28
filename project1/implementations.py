@@ -7,6 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 '''ONLY FOR VISUALIZATION'''
 from proj1_helpers import *
+import timeit
 
 '''DATASET INTRINSICS AND SHAPE (TARGETS AND IDS INCLUDED)'''
 def DataSetInfo(y, tX_old, ids):
