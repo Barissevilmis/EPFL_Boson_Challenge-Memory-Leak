@@ -1,11 +1,8 @@
-%matplotlib inline
 from implementations import *
 from proj1_helpers import *
 import numpy as np 
 import matplotlib.pyplot as plt
 import seaborn as sns
-%load_ext autoreload
-%autoreload 2
 
 
 '''PLEASE MODIFY DATA PATHS FOR BOTH TRAIN AND TEST'''

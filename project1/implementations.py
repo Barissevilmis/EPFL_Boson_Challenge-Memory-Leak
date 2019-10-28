@@ -1,13 +1,11 @@
 ######################## DATA ENGINEERING ################################
 ##########################################################################
 
-%matplotlib inline
 import numpy as np
 '''ONLY FOR VISUALIZATION'''
 import pandas as pd 
 import matplotlib.pyplot as plt
-%load_ext autoreload
-%autoreload 2
+'''ONLY FOR VISUALIZATION'''
 from proj1_helpers import *
 
 '''DATASET INTRINSICS AND SHAPE (TARGETS AND IDS INCLUDED)'''
@@ -338,7 +336,7 @@ def CrossValidation(y, tX, k, cat_, lambda_):
     return w_final, average_acc
     
 '''BUILD FULL DATA MODEL WITH CATEGORIZATION'''
-def BuildDataModel_Train(y, tX_old, ids,, pp = False):
+def BuildDataModel_Train(y, tX_old, ids, pp = False):
     '''CATEGORIZE DATA'''
     y_cat, tX_cat, id_cat, ind_cat = Categorize_Train(y, tX_old, ids)  
     '''PREPROCESS EACH CATEGORY'''
