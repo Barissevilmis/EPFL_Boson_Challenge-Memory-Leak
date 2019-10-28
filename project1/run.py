@@ -11,11 +11,11 @@ import timeit
 
 '''PLEASE MODIFY DATA PATHS FOR BOTH TRAIN AND TEST'''
 #DATA_TRAIN_PATH = '../../data_project1/train.csv'
-DATA_TRAIN_PATH = str(input("Please enter full path for training data:"))
+DATA_TRAIN_PATH = str(input("Please enter full path for training data(pwd):"))
 y, tX_old, ids = load_csv_data(DATA_TRAIN_PATH)
 
 #DATA_TEST_PATH = '../../data_project1/test.csv' 
-DATA_TEST_PATH = str(input("Please enter full path for testing data:"))
+DATA_TEST_PATH = str(input("Please enter full path for testing data(pwd):"))
 _, tX_test_old, ids_test = load_csv_data(DATA_TEST_PATH)
 
 
