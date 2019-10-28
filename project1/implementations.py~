@@ -1,14 +1,14 @@
 ######################## DATA ENGINEERING ################################
 ##########################################################################
 
-%matplotlib inline
 import numpy as np
 '''ONLY FOR VISUALIZATION'''
 import pandas as pd 
 import matplotlib.pyplot as plt
-%load_ext autoreload
-%autoreload 2
+import seaborn as sns
+'''ONLY FOR VISUALIZATION'''
 from proj1_helpers import *
+import timeit
 
 '''DATASET INTRINSICS AND SHAPE (TARGETS AND IDS INCLUDED)'''
 def DataSetInfo(y, tX_old, ids):
@@ -338,13 +338,13 @@ def CrossValidation(y, tX, k, cat_, lambda_):
     return w_final, average_acc
     
 '''BUILD FULL DATA MODEL WITH CATEGORIZATION'''
-def BuildDataModel_Train(y, tX_old, ids):
+def BuildDataModel_Train(y, tX_old, ids, pp = False):
     '''CATEGORIZE DATA'''
     y_cat, tX_cat, id_cat, ind_cat = Categorize_Train(y, tX_old, ids)  
     '''PREPROCESS EACH CATEGORY'''
     '''SET UP FOR ITERATIVE METHODS: IN CASE OF LEAST SQUARES WITH NORMAL EQUATIONS OR RIDGE REGRESSION CHANGE ALST PARAMETER TO TRUE'''
     for cat_ in range(tX_cat.shape[0]):
-        tX_cat[cat_] = PreProcess(tX_cat[cat_], False)  
+        tX_cat[cat_] = PreProcess(tX_cat[cat_], pp)  
          
     '''TRAIN SET'''
     tX_tr_cat = [[] for j in range(3)]
@@ -390,8 +390,23 @@ def BuildDataModel_CV(y, tX_old, ids):
 
 '''BUILD FULL DATA MODEL WITH CATEGORIZATION'''
 '''NO TARGET ARRAY PROVIDED FOR ACTUAL TESTING DATA'''
-def BuildDataModel_Test(tX_old, ids):
+def BuildDataModel_Test(tX_old, ids , pp = False):
     '''CATEGORIZE DATA'''
+    tX_cat, id_cat, ind_cat = Categorize_Test(tX_old, ids)
+    
+    for cat_ in range(tX_cat.shape[0]):
+        tX_cat[cat_] = PreProcess(tX_cat[cat_], False)
+        
+    '''CONVERT TRAIN AND DATASET INTO NUMPY ARRAYS'''
+    tX_cat = np.array((tX_cat))
+    id_cat = np.array((id_cat))
+    ind_cat = np.array((ind_cat))
+    
+    return tX_cat, id_cat, ind_cat
+
+'''BUILD FULL DATA MODEL WITH CATEGORIZATION -> FOR RIDGE REGRESSION AND LEAST SQUARES'''
+'''NO TARGET ARRAY PROVIDED FOR ACTUAL TESTING DATA'''
+def BuildDataModel_CV_Test(tX_old, ids):
     tX_cat, id_cat, ind_cat = Categorize_Test(tX_old, ids)
     
     for cat_ in range(tX_cat.shape[0]):
@@ -505,19 +520,19 @@ def compute_reg_log_gradient(y, tx, w, lambda_):
 ##########################################################################
 
 '''BATCH GRADIENT DESCENT'''
-def least_squares_GD(y, tx, initial_w, max_iters, gamma, cat_):
+def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     w = initial_w
     for n_iter in range(max_iters):
         loss = compute_loss(y, tx, w, "MSE")
         grad = compute_gradient(y, tx, w)
         w = w - (gamma * grad)
         if (n_iter % 100) == 0:
-            print("Gradient Descent({bi}/{ti})for Category-{pi}: loss={l}".format(bi=n_iter, ti=max_iters - 1,pi = cat_, l=loss))
+            print("Gradient Descent({bi}/{ti}) loss={l}".format(bi=n_iter, ti=max_iters - 1, l=loss))
 
     return (w, loss)
 
 '''STOCHASTIC GRADIENT DESCENT'''
-def least_squares_SGD(y, tx, initial_w, max_iters, gamma, cat_):
+def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     w = initial_w 
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, 1):
@@ -525,8 +540,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma, cat_):
             grad = compute_gradient(minibatch_y, minibatch_tx, w)
             w = w - gamma * grad
             if (n_iter % 100) == 0:
-                print("Stochastic Gradient Descent({bi}/{ti})for Category-{pi}: loss={l}".format(bi=n_iter, ti=max_iters - 1,pi = cat_, l=loss))
-                
+                print("Stochastic Gradient Descent({bi}/{ti}): loss={l}".format(bi=n_iter, ti=max_iters - 1, l=loss))          
     return (w, loss)
 
 '''COMPUTE W_STAR: WEIGHT FOR NORMAL EQUATIONS BY LINEAR EQUATION SOLVER'''
@@ -546,7 +560,7 @@ def ridge_regression(y, tx, lambda_):
     return (w_ridge, loss)
 
 '''LOGISTIC REGRESSION WITH BATCH GRADIENT DESCENT OR STOCHASTIC GRADIENT DESCENT'''
-def logistic_regression(y, tx, initial_w, max_iters, gamma, cat_, mod = 1):
+def logistic_regression(y, tx, initial_w, max_iters, gamma, mod = 1):
     if mod == 1:
         '''FOR GRADIENT DESCENT'''
         w = initial_w
@@ -555,7 +569,7 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma, cat_, mod = 1):
             grad = compute_log_gradient(y, tx, w)
             w = w - (gamma * grad)
             if (n_iter % 100) == 0:
-                print("Logistic Regression Gradient Descent({bi}/{ti}) for Category-{pi}: loss={l}".format(bi=n_iter, ti=max_iters - 1,pi = cat_, l=loss))
+                print("Logistic Regression Gradient Descent({bi}/{ti}): loss={l}".format(bi=n_iter, ti=max_iters - 1, l=loss))
 
         return (w, loss)
     else:
@@ -566,11 +580,11 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma, cat_, mod = 1):
                 loss = compute_log_loss(minibatch_y, minibatch_tx, w)
                 grad = compute_log_gradient(minibatch_y, minibatch_tx, w)
                 w = w - gamma * grad
-                print("Logistic Regression Stochastic Gradient Descent({bi}/{ti}) for Category-{pi}: loss={l}".format(bi=n_iter, ti=max_iters - 1,pi = cat_, l=loss))
+                print("Logistic Regression Gradient Descent({bi}/{ti}): loss={l}".format(bi=n_iter, ti=max_iters - 1, l=loss))
         return (w, loss)
 
 '''REGULARIZED LOGISTIC REGRESSION WITH BATCH GRADIENT DESCENT OR STOCHASTIC GRADIENT DESCENT'''
-def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, cat_, mod = 1):
+def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, mod = 1):
     if mod == 1:
         '''FOR GRADIENT DESCENT'''
         w = initial_w
@@ -579,7 +593,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, cat_, m
             grad = compute_reg_log_gradient(y, tx, w, lambda_)
             w = w - (gamma * grad)
             if (n_iter % 100) == 0:
-                print("Logistic Regression Gradient Descent({bi}/{ti})for Category-{pi}: loss={l}".format(bi=n_iter, ti=max_iters - 1,pi = cat_, l=loss))
+                print("Regularized Logistic Regression Gradient Descent({bi}/{ti}): loss={l}".format(bi=n_iter, ti=max_iters - 1, l=loss))
 
         return (w, loss)
     else:
@@ -590,10 +604,223 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, cat_, m
                 loss = compute_reg_log_loss(minibatch_y, minibatch_tx, w, lambda_)
                 grad = compute__reg_log_gradient(minibatch_y, minibatch_tx, w, lambda_)
                 w = w - gamma * grad
-                print("Logistic Regression Stochastic Gradient Descent({bi}/{ti})for Category-{pi}: loss={l}".format(bi=n_iter, ti=max_iters - 1,pi = cat_, l=loss))
+                print("Regularized Logistic Regression Gradient Descent({bi}/{ti}): loss={l}".format(bi=n_iter, ti=max_iters - 1, l=loss))
         return (w, loss)
 ############################# MODELS #####################################
 ##########################################################################
+
+
+########################### RUN MODELS ###################################
+##########################################################################
+
+'''PREDICTIONS FOR MODELS WITHOUT CROSS VALIDATION'''
+'''CHOOSE MOD FOR LEARNING ALGORITHM: 1: LS-GD, 2: LS-SGD, 3: NORMAL EQ, 4: RR, 5: LR, 6: RLR'''
+def Main(y_cat, tX_cat, y_val_cat, tX_val_cat, mod = 4):
+    init_w_gd = np.array((InitWeights(tX_cat[0].shape[1]),InitWeights(tX_cat[1].shape[1]),InitWeights(tX_cat[2].shape[1])))
+    gd_tr_pred = np.copy((y_val_cat))
+    w_gd = np.copy((init_w_gd))
+    max_iters, epochs, gamma, lambda_,decay,k_fold = HyperParameters()
+    cat_lst = [0, 1, 2]
+    
+    if mod == 1:
+        for epoch_ in range(epochs):
+
+            start = timeit.default_timer()
+
+            for cat_ in cat_lst:   
+                (w_gd[cat_],loss1) = least_squares_GD(y_cat[cat_], tX_cat[cat_],w_gd[cat_], max_iters, gamma)
+
+            stop = timeit.default_timer()
+
+            print('Time: ', stop - start) 
+
+            gamma = GammaScheduler(gamma, decay, epoch_)
+    
+    elif mod == 2: 
+        
+         for epoch_ in range(epochs):
+
+            start = timeit.default_timer()
+
+            for cat_ in cat_lst:   
+                (w_gd[cat_],loss1) = least_squares_SGD(y_cat[cat_], tX_cat[cat_],w_gd[cat_], max_iters, gamma)
+
+            stop = timeit.default_timer()
+
+            print('Time: ', stop - start) 
+
+            gamma = GammaScheduler(gamma, decay, epoch_)
+            
+    elif mod == 3:
+        print("Modifying Data in terms of Least Square with Normal Equations: ")
+        (y_cat, tX_cat, ids_cat, ind_cat), (y_val_cat, tX_val_cat, ids_val_cat, ind_val_cat) = BuildDataModel_Train(y,tX_old,ids, True)
+        for cat_ in cat_lst:   
+            (w_gd[cat_],loss1) = least_squares(y_cat[cat_], tX_cat[cat_])
+
+    elif mod == 4: 
+        print("Modifying Data in terms of Ridge Regression: ")
+        (y_cat, tX_cat, ids_cat, ind_cat), (y_val_cat, tX_val_cat, ids_val_cat, ind_val_cat) = BuildDataModel_Train(y,tX_old,ids,True)
+        for cat_ in cat_lst:   
+            (w_gd[cat_],loss1) = ridge_regression(y_cat[cat_], tX_cat[cat_],lambda_)
+            
+    elif mod == 5:
+        
+         for epoch_ in range(epochs):
+
+            start = timeit.default_timer()
+
+            for cat_ in cat_lst:   
+                (w_gd[cat_],loss1) = logistic_regression(y_cat[cat_], tX_cat[cat_],w_gd[cat_], max_iters, gamma)
+
+            stop = timeit.default_timer()
+
+            print('Time: ', stop - start) 
+
+            gamma = GammaScheduler(gamma, decay, epoch_)
+            
+    elif mod == 6:
+        
+         for epoch_ in range(epochs):
+
+            start = timeit.default_timer()
+
+            for cat_ in cat_lst:   
+                (w_gd[cat_],loss1) = reg_logistic_regression(y_cat[cat_], tX_cat[cat_], lambda_, w_gd[cat_], max_iters, gamma)
+
+            stop = timeit.default_timer()
+
+            print('Time: ', stop - start) 
+
+            gamma = GammaScheduler(gamma, decay, epoch_)
+            
+    '''PREDICTIONS'''
+    for cat_ in cat_lst:
+        gd_tr_pred[cat_] = predict_labels(w_gd[cat_], tX_val_cat[cat_])
+        print(gd_tr_pred[cat_])
+            
+    acc = WeightedAverage(gd_tr_pred, y_val_cat)
+    print("Accuracy of Model:", acc)
+    return w_gd
+
+
+'''CROSS VALIDATION WEIGHT'''
+'''WEIGHTS ARE TAKEN AS MEAN OF VARIOUS MEANS BY TRAINING ON DIFFERENT TRAIN-VALID PARTITIONS'''
+'''ACCURACY INCREASE IS NOT THE PURPOSE BUT WEIGHT AND ACCURACY VALIDATION ARE FIXED'''
+def CV_Main(y_cat, tX_cat):
+    cat_lst = [0, 1, 2]
+    max_iters, epochs, gamma, lambda_, decay, k_fold = HyperParameters()
+    w_res = np.array((InitWeights(tX_cat[0].shape[1]),InitWeights(tX_cat[1].shape[1]),InitWeights(tX_cat[2].shape[1])))
+    cv_tr_pred = [[] for i in range(len(cat_lst))]
+    for cat_ in cat_lst:
+        w_final, avg_acc = CrossValidation(y_cat[cat_], tX_cat[cat_], k_fold, cat_, lambda_)
+        w_res[cat_] = w_final
+        print("Final weight vector shape: ",w_final.shape)
+    return w_res
+
+'''FUNCTION FOR TESTING'''
+'''DECATEGORIZES PREDICTIONS AFTER PREDICTIONS'''
+def Tester(w_cv, tX_test_cat, id_test_cat, ind_test_cat, mod = 1):
+    OUTPUT_PATH = 'results'+ str(mod)+'.csv'
+    cat_lst = [0, 1, 2]
+    y_pred = [[] for i in range(3)]
+    for cat_ in cat_lst:
+        y_pred[cat_] = predict_labels(w_cv[cat_], tX_test_cat[cat_])
+    y_pred = np.array((y_pred))
+    pred_vec = Decategorize(y_pred, ind_test_cat)
+    pred_ids = Decategorize(id_test_cat, ind_test_cat)
+    create_csv_submission(pred_ids, pred_vec, OUTPUT_PATH)
+    
+########################### RUN MODELS ###################################
+##########################################################################
+
+
+########################### FEATURE 30 ###################################
+############################# TRIAL ######################################
+
+'''CATEGORIZE TRAIN INTO TWO CATEGORIES ACCORDING TO FEATURE 30 - TARGET RELATION'''
+def Categorize_Lucky(y, tX, ids):
+    ind = [[] for j in range(2)]
+    xx = [[] for j in range(2)]
+    yy = [[] for j in range(2)]
+    iids = [[] for j in range(2)]
+    
+    ind[0] = np.nonzero(tX[:, 29] <= 0.1)[0]      
+    xx[0] = tX[ind[0]]
+    yy[0] = y[ind[0]]
+    iids[0] = ids[ind[0]]
+    
+    ind[1] = np.nonzero(tX[:, 29] > 0.1)[0]      
+    xx[1] = tX[ind[1]]
+    yy[1] = y[ind[1]]
+    iids[1] = ids[ind[1]]
+        
+    return np.array((yy)), np.array((xx)), np.array((iids)), np.array((ind))
+
+
+
+'''CATEGORIZE TEST INTO TWO CATEGORIES ACCORDING TO FEATURE 30 - TARGET RELATION'''
+def Categorize_Lucky_Test(tX, ids):
+    '''CATEGORY 2 AND 3 CONCETENATED'''
+    ind = [[] for j in range(2)]
+    xx = [[] for j in range(2)]
+    iids = [[] for j in range(2)]
+    
+    ind[0] = np.nonzero(tX[:, 29] <= 0.1)[0]      
+    xx[0] = tX[ind[0]]
+    iids[0] = ids[ind[0]]
+    
+    ind[1] = np.nonzero(tX[:, 29] > 0.1)[0]      
+    xx[1] = tX[ind[1]]
+    iids[1] = ids[ind[1]]
+        
+    return np.array((xx)), np.array((iids)), np.array((ind))
+
+'''BUILD TRAIN DATA MODEL FOR THE FEATURE 30'''
+'''CROSS VALIDATION DATA MODEL FOR FEATURE 30'''
+def BuildDataModel_Lucky(y, tX_old, ids):
+    y_cat, tX_cat, id_cat, ind_cat = Categorize_Lucky(y, tX_old, ids)
+    
+    for cat_ in range(tX_cat.shape[0]): 
+        tX_cat[cat_] = PreProcess(tX_cat[cat_], True)
+        
+    return y_cat, tX_cat, id_cat, ind_cat
+
+'''BUILD TEST DATA MODEL FOR THE FEATURE 30'''
+def BuildDataModel_Lucky_Test(tX_old, ids):
+    tX_cat, id_cat, ind_cat = Categorize_Lucky_Test(tX_old, ids)
+    
+    for cat_ in range(tX_cat.shape[0]):
+        tX_cat[cat_] = PreProcess(tX_cat[cat_])
+        
+    '''CONVERT TRAIN AND DATASET INTO NUMPY ARRAYS'''
+    tX_cat = np.array((tX_cat))
+    id_cat = np.array((id_cat))
+    ind_cat = np.array((ind_cat))
+    
+    return tX_cat, id_cat, ind_cat
+
+'''PREDICTIONS INTO COMPARABLE FORM'''
+def Decategorize_Lucky(y_cat, ind):
+    size = y_cat[0].shape[0] + y_cat[1].shape[0]
+    y = np.zeros((size,), dtype=np.float)
+    for i in range(len(y_cat)):
+        y[ind[i]] = y_cat[i]
+    return y
+
+'''TEST FEATURE 30 MODEL'''
+def Lucky_Main(y_cat, tX_cat):
+    cat_lst = [0, 1]
+    max_iters, epochs, gamma, lambda_, decay, k_fold = HyperParameters()
+    w_res = np.array((InitWeights(tX_cat[0].shape[1]),InitWeights(tX_cat[1].shape[1])))
+    cv_tr_pred = [[] for i in range(len(cat_lst))]
+    for cat_ in cat_lst:
+        w_final, avg_acc = CrossValidation(y_cat[cat_], tX_cat[cat_], k_fold, cat_, lambda_)
+        w_res[cat_] = w_final
+        print("Final weight vector shape: ",w_final.shape)
+    return w_res
+
+############################# TRIAL ######################################
+########################### FEATURE 30 ###################################
 
 
 
