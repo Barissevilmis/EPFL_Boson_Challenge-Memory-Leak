@@ -1,8 +1,11 @@
 from implementations import *
 from proj1_helpers import *
 import numpy as np 
+'''ONLY FOR VISUALIZATION'''
+import pandas as pd 
 import matplotlib.pyplot as plt
 import seaborn as sns
+'''ONLY FOR VISUALIZATION'''
 import timeit
 
 
