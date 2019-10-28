@@ -1,10 +1,33 @@
-# MemoryLeak
-ML - Project I &amp; II
+MEMORY LEAK: HIGGS BOSON CHALLENGE:
+Baris Sevilmis
+Berk Mandiracioglu
+Onur Veyisoglu
 
-Project Codes on Branch Baris at the moment:
+IMPLEMENTATION.PY
 
-git checkout Baris - git pull
+1) In implementations.py, functions are grouped in subsections. DATA ENGINEERING, LOSS AND GRADIENTS, MODELS, RUN FUNCTIONS OF R TRAIN AND TEST AND FINALLY FEATURE 30 CATEGORIZATION. Last group was only created to test categorization on another feature(30th feature), therefore is not included in run.py.
 
-Original Project codes within scripts file.
+2) DATA ENGINEERING: Functions are commented, and explained in a detailed manner. Variable names are provided as reasonable names. Modularity is highly used, as usage of functions reduces codes complexity and increases readability. BuildDataModel functions are the highest level data model builder functions. They are seperated for training and testing as well as CrossValidation Method and Randomized Split Methods:
 
-Modified codes within project I & II.
+-Training and Testing: Test Set has no target vector, therefore seperated.
+-CV and Randomized Split: We have used Ridge Regression in Cross Validation as it provided best set of results for us. Cross Validation method in terms of weight vector determination is used to produce a more stabil and reliable weight vector as mean of k-fold training weight vectors are taken. Randomized split is used as a regular validation method.
+
+Other than validation split, data is categorized and preprocessed before used for training. Ridge Regression gives best result if we add features after standardization, as iterative methods are providing best result vice versa. Therefore, preprocess calls standardization and add features methods vice versa. Rest of the methods are preprocess or categorization specific.
+
+3) LOSS & GRADIENT: Loss computation and gradient computations for different models are included in this section. Names are provided clearly such that including comments all the functions should be clear in terms of their model.
+
+4) MODELS: Implementations for each requested model are provided in this section.
+
+5) RUN: Main, CV_Main and Tester functions are provided. Main function contains all the learning algorithms: given the last parameter in range of [1,6], specific learning algorithms will be called. For Ridge Regression and Least Squares, data are modified within function again.
+
+RUN.PY
+
+Requested import are made, Pandas is only for visualizaiton in terms of correlation map. It is still not used.
+
+Data paths will be taken as inputs, if not need to modify commented train and test paths
+
+Resulting csv files are written in result+str(learning algorithm number)+.csv in the same location with the code.
+
+All learning algorithms are being run with Tester including CV.
+
+NOTE: PLEASE MODIFY DATA PATH, IF DON'T WANT TO ENTER AS INPUT: ENTER FULL PATH(use pwd)

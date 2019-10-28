@@ -26,8 +26,12 @@ Requested import are made, Pandas is only for visualizaiton in terms of correlat
 
 Data paths will be taken as inputs, if not need to modify commented train and test paths
 
+Comment algorithm training lines if needed: 1 - Batch GD, 2 - SGD, 3 - Leas Squares, 4- Ridge Regression, 5 - Logistic Regression, 6 - Regularized Logistic Regression, 7 - Cross Validation Ridge Regression
+
+Same is also applied for Tester lines where predictions are produced.
+
 Resulting csv files are written in result+str(learning algorithm number)+.csv in the same location with the code.
 
 All learning algorithms are being run with Tester including CV.
 
-NOTE: PLEASE MODIFY DATA PATH, IF DON'T WANT TO ENTER AS INPUT: ENTER FULL PATH(use pwd)
+NOTE: PLEASE MODIFY DATA PATH, IF DON'T WANT TO ENTER AS INPUT: ENTER FULL PATH(use pwd) IN BOTH CASES
