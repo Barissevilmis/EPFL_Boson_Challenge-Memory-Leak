@@ -3,6 +3,8 @@ Baris Sevilmis
 Berk Mandiracioglu
 Onur Veyisoglu
 
+Submission ID: 23430 - Ridge Regression
+
 IMPLEMENTATION.PY
 
 1) In implementations.py, functions are grouped in subsections. DATA ENGINEERING, LOSS AND GRADIENTS, MODELS, RUN FUNCTIONS OF R TRAIN AND TEST AND FINALLY FEATURE 30 CATEGORIZATION. Last group was only created to test categorization on another feature(30th feature), therefore is not included in run.py.
@@ -26,7 +28,7 @@ Requested import are made, Pandas is only for visualizaiton in terms of correlat
 
 Data paths will be taken as inputs, if not need to modify commented train and test paths
 
-Comment algorithm training lines if needed: 1 - Batch GD, 2 - SGD, 3 - Leas Squares, 4- Ridge Regression, 5 - Logistic Regression, 6 - Regularized Logistic Regression, 7 - Cross Validation Ridge Regression
+Comment/Uncomment algorithm training lines if needed: 1 - Batch GD, 2 - SGD, 3 - Leas Squares, 4- Ridge Regression, 5 - Logistic Regression, 6 - Regularized Logistic Regression, 7 - Cross Validation Ridge Regression
 
 Same is also applied for Tester lines where predictions are produced.
 
@@ -35,3 +37,5 @@ Resulting csv files are written in result+str(learning algorithm number)+.csv in
 All learning algorithms are being run with Tester including CV.
 
 NOTE: PLEASE MODIFY DATA PATH, IF DON'T WANT TO ENTER AS INPUT: ENTER FULL PATH(use pwd) IN BOTH CASES
+NOTE-2: ONLY THE BEST LEARNING ALGORITHM IS UNCOMMENTED, PLEASE REMOVE COMMENTS IF NEEDED
+NOTE-3: DATA PROCESSING FOR 1-6 LEARNING ALGORITHMS ARE COMMENTED, PLEASE UNCOMMENT(ALSO TESTER & LEARNING LINES) IF WANT TO SEE RESULTS FOR EACH OF THEM 
