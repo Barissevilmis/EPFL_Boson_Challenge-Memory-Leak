@@ -615,7 +615,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma, mod = 1
 
 '''PREDICTIONS FOR MODELS WITHOUT CROSS VALIDATION'''
 '''CHOOSE MOD FOR LEARNING ALGORITHM: 1: LS-GD, 2: LS-SGD, 3: NORMAL EQ, 4: RR, 5: LR, 6: RLR'''
-def Main(y_cat, tX_cat, y_val_cat, tX_val_cat, mod = 4):
+def Main(y_cat, tX_cat, y_val_cat, tX_val_cat, y, tX_old, ids, mod = 4):
     init_w_gd = np.array((InitWeights(tX_cat[0].shape[1]),InitWeights(tX_cat[1].shape[1]),InitWeights(tX_cat[2].shape[1])))
     gd_tr_pred = np.copy((y_val_cat))
     w_gd = np.copy((init_w_gd))

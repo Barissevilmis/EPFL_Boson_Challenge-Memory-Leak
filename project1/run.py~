@@ -28,12 +28,12 @@ tX_test_cat, id_test_cat, ind_test_cat = BuildDataModel_Test(tX_test_old,ids_tes
 tX_cv_test_cat, id_cv_test_cat, ind_cv_test_cat = BuildDataModel_CV_Test(tX_test_old,ids_test)
 
 #Randomized Data Split
-w1 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,1)
-w2 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,2)
-w3 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,3)
-w4 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,4)
-w5 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,5)
-w6 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,6)
+w1 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,1, y, tX_old, ids)
+w2 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,2, y, tX_old, ids)
+w3 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,3, y, tX_old, ids)
+w4 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,4, y, tX_old, ids)
+w5 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,5, y, tX_old, ids)
+w6 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,6, y, tX_old, ids)
 
 w_cv = CV_Main(y_cv_cat, tX_cv_cat)
 
@@ -46,4 +46,4 @@ Tester(w4, tX_cv_test_cat, id_cv_test_cat, ind_cv_test_cat,4)
 Tester(w5, tX_test_cat, id_test_cat, ind_test_cat,5)
 Tester(w6, tX_test_cat, id_test_cat, ind_test_cat,6)
 
-Tester(w_cv, tX_test_cat, id_test_cat, ind_test_cat,7)
+Tester(w_cv, tX_cv_test_cat, id_cv_test_cat, ind_cv_test_cat,7)
