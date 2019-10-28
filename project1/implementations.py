@@ -641,7 +641,7 @@ def Main(y_cat, tX_cat, y_val_cat, tX_val_cat, mod = 4):
          for epoch_ in range(epochs):
 
             start = timeit.default_timer()
-            gamma = 1e-6
+            gamma = 1e-5
             for cat_ in cat_lst:   
                 (w_gd[cat_],loss1) = least_squares_SGD(y_cat[cat_], tX_cat[cat_],w_gd[cat_], max_iters, gamma)
 
