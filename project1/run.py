@@ -8,11 +8,13 @@ import seaborn as sns
 %autoreload 2
 
 
-#Modify DATA_PATH if needed
-DATA_TRAIN_PATH = '../../data_project1/train.csv'
+'''PLEASE MODIFY DATA PATHS FOR BOTH TRAIN AND TEST'''
+#DATA_TRAIN_PATH = '../../data_project1/train.csv'
+DATA_TRAIN_PATH = str(input("Please enter full path for training data:"))
 y, tX_old, ids = load_csv_data(DATA_TRAIN_PATH)
 
-DATA_TEST_PATH = '../../data_project1/test.csv' 
+#DATA_TEST_PATH = '../../data_project1/test.csv' 
+DATA_TEST_PATH = str(input("Please enter full path for testing data:"))
 _, tX_test_old, ids_test = load_csv_data(DATA_TEST_PATH)
 
 
@@ -22,9 +24,7 @@ y_cv_cat, tX_cv_cat, ids_cv_cat, ind_cv_cat = BuildDataModel_CV(y,tX_old,ids)
 
 tX_test_cat, id_test_cat, ind_test_cat = BuildDataModel_Test(tX_test_old,ids_test)
 
-y_lucky, tX_lucky, ids_lucky, ind_lucky = BuildDataModel_Lucky(y, tX_old, ids)
-
-tX_test_lucky, ids_test_lucky, ind_test_lucky = BuildDataModel_Lucky_Test(tX_test_old, ids_test)
+tX_cv_test_cat, id_cv_test_cat, ind_cv_test_cat = BuildDataModel_CV_Test(tX_test_old,ids_test)
 
 #Randomized Data Split
 w1 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,1)
@@ -34,11 +34,15 @@ w4 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,4)
 w5 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,5)
 w6 = Main(y_cat, tX_cat, y_val_cat, tX_val_cat,6)
 
+w_cv = CV_Main(y_cv_cat, tX_cv_cat)
+
 #Results
 
-Tester(w_normal, tX_test_cat, id_test_cat, ind_test_cat,1)
-Tester(w_normal, tX_test_cat, id_test_cat, ind_test_cat,2)
-Tester(w_normal, tX_test_cat, id_test_cat, ind_test_cat,3)
-Tester(w_normal, tX_test_cat, id_test_cat, ind_test_cat,4)
-Tester(w_normal, tX_test_cat, id_test_cat, ind_test_cat,5)
-Tester(w_normal, tX_test_cat, id_test_cat, ind_test_cat,6)
+Tester(w1, tX_test_cat, id_test_cat, ind_test_cat,1)
+Tester(w2, tX_test_cat, id_test_cat, ind_test_cat,2)
+Tester(w3, tX_cv_test_cat, id_cv_test_cat, ind_cv_test_cat,3)
+Tester(w4, tX_cv_test_cat, id_cv_test_cat, ind_cv_test_cat,4)
+Tester(w5, tX_test_cat, id_test_cat, ind_test_cat,5)
+Tester(w6, tX_test_cat, id_test_cat, ind_test_cat,6)
+
+Tester(w_cv, tX_test_cat, id_test_cat, ind_test_cat,7)

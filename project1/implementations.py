@@ -338,13 +338,13 @@ def CrossValidation(y, tX, k, cat_, lambda_):
     return w_final, average_acc
     
 '''BUILD FULL DATA MODEL WITH CATEGORIZATION'''
-def BuildDataModel_Train(y, tX_old, ids):
+def BuildDataModel_Train(y, tX_old, ids,, pp = False):
     '''CATEGORIZE DATA'''
     y_cat, tX_cat, id_cat, ind_cat = Categorize_Train(y, tX_old, ids)  
     '''PREPROCESS EACH CATEGORY'''
     '''SET UP FOR ITERATIVE METHODS: IN CASE OF LEAST SQUARES WITH NORMAL EQUATIONS OR RIDGE REGRESSION CHANGE ALST PARAMETER TO TRUE'''
     for cat_ in range(tX_cat.shape[0]):
-        tX_cat[cat_] = PreProcess(tX_cat[cat_], False)  
+        tX_cat[cat_] = PreProcess(tX_cat[cat_], pp)  
          
     '''TRAIN SET'''
     tX_tr_cat = [[] for j in range(3)]
@@ -390,8 +390,23 @@ def BuildDataModel_CV(y, tX_old, ids):
 
 '''BUILD FULL DATA MODEL WITH CATEGORIZATION'''
 '''NO TARGET ARRAY PROVIDED FOR ACTUAL TESTING DATA'''
-def BuildDataModel_Test(tX_old, ids):
+def BuildDataModel_Test(tX_old, ids , pp = False):
     '''CATEGORIZE DATA'''
+    tX_cat, id_cat, ind_cat = Categorize_Test(tX_old, ids)
+    
+    for cat_ in range(tX_cat.shape[0]):
+        tX_cat[cat_] = PreProcess(tX_cat[cat_], False)
+        
+    '''CONVERT TRAIN AND DATASET INTO NUMPY ARRAYS'''
+    tX_cat = np.array((tX_cat))
+    id_cat = np.array((id_cat))
+    ind_cat = np.array((ind_cat))
+    
+    return tX_cat, id_cat, ind_cat
+
+'''BUILD FULL DATA MODEL WITH CATEGORIZATION -> FOR RIDGE REGRESSION AND LEAST SQUARES'''
+'''NO TARGET ARRAY PROVIDED FOR ACTUAL TESTING DATA'''
+def BuildDataModel_CV_Test(tX_old, ids):
     tX_cat, id_cat, ind_cat = Categorize_Test(tX_old, ids)
     
     for cat_ in range(tX_cat.shape[0]):
@@ -505,19 +520,19 @@ def compute_reg_log_gradient(y, tx, w, lambda_):
 ##########################################################################
 
 '''BATCH GRADIENT DESCENT'''
-def least_squares_GD(y, tx, initial_w, max_iters, gamma, cat_):
+def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     w = initial_w
     for n_iter in range(max_iters):
         loss = compute_loss(y, tx, w, "MSE")
         grad = compute_gradient(y, tx, w)
         w = w - (gamma * grad)
         if (n_iter % 100) == 0:
-            print("Gradient Descent({bi}/{ti})for Category-{pi}: loss={l}".format(bi=n_iter, ti=max_iters - 1,pi = cat_, l=loss))
+            print("Gradient Descent({bi}/{ti}) loss={l}".format(bi=n_iter, ti=max_iters - 1, l=loss))
 
     return (w, loss)
 
 '''STOCHASTIC GRADIENT DESCENT'''
-def least_squares_SGD(y, tx, initial_w, max_iters, gamma, cat_):
+def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     w = initial_w 
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, 1):
@@ -613,7 +628,7 @@ def Main(y_cat, tX_cat, y_val_cat, tX_val_cat, mod = 4):
             start = timeit.default_timer()
 
             for cat_ in cat_lst:   
-                (w_gd[cat_],loss1) = logistic_regression(y_cat[cat_], tX_cat[cat_],w_gd[cat_], max_iters, gamma)
+                (w_gd[cat_],loss1) = least_squares_GD(y_cat[cat_], tX_cat[cat_],w_gd[cat_], max_iters, gamma)
 
             stop = timeit.default_timer()
 
@@ -636,13 +651,15 @@ def Main(y_cat, tX_cat, y_val_cat, tX_val_cat, mod = 4):
 
             gamma = GammaScheduler(gamma, decay, epoch_)
             
-    elif mod == 3: 
-        
+    elif mod == 3:
+        print("Modifying Data in terms of Least Square with Normal Equations: ")
+        (y_cat, tX_cat, ids_cat, ind_cat), (y_val_cat, tX_val_cat, ids_val_cat, ind_val_cat) = BuildDataModel_Train(y,tX_old,ids, True)
         for cat_ in cat_lst:   
             (w_gd[cat_],loss1) = least_squares(y_cat[cat_], tX_cat[cat_])
 
     elif mod == 4: 
-        
+        print("Modifying Data in terms of Ridge Regression: ")
+        (y_cat, tX_cat, ids_cat, ind_cat), (y_val_cat, tX_val_cat, ids_val_cat, ind_val_cat) = BuildDataModel_Train(y,tX_old,ids,True)
         for cat_ in cat_lst:   
             (w_gd[cat_],loss1) = ridge_regression(y_cat[cat_], tX_cat[cat_],lambda_)
             
