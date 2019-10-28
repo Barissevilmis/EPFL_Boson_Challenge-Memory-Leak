@@ -46,4 +46,4 @@ Tester(w4, tX_cv_test_cat, id_cv_test_cat, ind_cv_test_cat,4)
 Tester(w5, tX_test_cat, id_test_cat, ind_test_cat,5)
 Tester(w6, tX_test_cat, id_test_cat, ind_test_cat,6)
 
-Tester(w_cv, tX_test_cat, id_test_cat, ind_test_cat,7)
+Tester(w_cv, tX_cv_test_cat, id_cv_test_cat, ind_cv_test_cat,7)

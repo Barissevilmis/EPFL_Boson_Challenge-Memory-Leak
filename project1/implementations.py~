@@ -164,9 +164,9 @@ def CorrMap(tX):
 
 '''RANDOM DATA SPLIT'''
 '''SEED PROVIDES A FIXED RANDOMNESS, BUT IS NOT USED AS WE WANT FULL RANDONMNESS'''
-def RandomizedDataSplit(tX, y, ids, inds, split_size = 0.1, my_seed=1):
+def RandomizedDataSplit(tX, y, ids, inds, split_size = 0.1, my_seed=42):
     '''SET SEED FOR REMOVING RANDOMNESS'''
-    #np.random.seed(my_seed)
+    np.random.seed(my_seed)
     '''RANDOM INDEXES'''
     size = y.shape[0]
     ind = np.random.permutation(size)
@@ -294,8 +294,8 @@ def SelectIndices(y, k_fold, seed):
 
 '''CROSS VALIDATION'''
 '''INSTEAD OF A SPECIFIC TRAIN/VALID SPLIT, K-FOLD AMOUNT OF TRAIN/VALID SPLIT CREATED'''
-def CrossValidation(y, tX, k, cat_, lambda_):
-    seed = np.random.randint(10)
+def CrossValidation(y, tX, k, cat_, lambda_,seed = 42):
+    #seed = np.random.randint(10)
     indices = SelectIndices(y,k,seed)
     average_acc = 0
     w_vec = list()
